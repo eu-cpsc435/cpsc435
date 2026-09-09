@@ -6,7 +6,7 @@
   "workbench.editor.empty.hint": "hidden",
   "terminal.integrated.initialHint": false,
   "terminal.integrated.initialHintCopilotCli": false,
-  "chat.disableAIFeatures": true,
+  "chat.disableAIFeatures": false,
   "files.autoSave": "off",
   "github.copilot.editor.enableCodeActions": false,
   "github.copilot.enable": {
