@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-Learning Grid World</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <h1>Q-Learning Grid World</h1>
+    </div>
+    <div class="top-controls">
+      <label class="field">
+        <span>World</span>
+        <select id="layoutSelect"></select>
+      </label>
+      <div class="modes" role="group" aria-label="Mode">
+        <button id="modeTraining" class="mode is-active" data-mode="training">Training</button>
+        <button id="modeExecution" class="mode" data-mode="execution">Execution</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ---------------------------------------------------------- left -->
+    <aside class="col col-left">
+
+      <section class="card">
+        <h2>Hyperparameters</h2>
+        <div class="params">
+
+          <div class="param">
+            <span class="param-name"><label for="alpha">&alpha; <em>learning rate</em></label></span>
+            <input type="range" id="alpha" min="0.05" max="1" step="0.05" value="0.2">
+            <output id="alphaOut">0.20</output>
+          </div>
+
+          <div class="param" id="rowGamma">
+            <span class="param-name">
+              <input type="checkbox" id="useGamma">
+              <label for="useGamma">&gamma; <em>discount</em></label>
+            </span>
+            <input type="range" id="gamma" min="0" max="0.99" step="0.01" value="0.9"
+                   aria-label="Discount factor value">
+            <output id="gammaOut">1.00</output>
+          </div>
+
+          <div class="param-group" id="rowEpsilon">
+            <span class="param-name">
+              <input type="checkbox" id="useEpsilon">
+              <label for="useEpsilon">&epsilon; <em>exploration</em></label>
+            </span>
+            <div class="param">
+              <span class="param-name"><label for="epsStart">&epsilon;&#8320; <em>start</em></label></span>
+              <input type="range" id="epsStart" min="0" max="1" step="0.05" value="1">
+              <output id="epsStartOut">0.00</output>
+            </div>
+            <div class="param">
+              <span class="param-name"><label for="epsDecay">decay <em>per episode</em></label></span>
+              <input type="range" id="epsDecay" min="0.80" max="1" step="0.01" value="0.95">
+              <output id="epsDecayOut">1.00</output>
+            </div>
+          </div>
+
+          <div class="param" id="rowPenalty">
+            <span class="param-name">
+              <input type="checkbox" id="usePenalty">
+              <label for="usePenalty">step penalty <em>gray cells</em></label>
+            </span>
+            <input type="range" id="stepPenalty" min="-0.2" max="-0.01" step="0.01" value="-0.04"
+                   aria-label="Step penalty value">
+            <output id="stepPenaltyOut">0.00</output>
+          </div>
+
+        </div>
+
+        <p class="hint">Unchecked means the term has no effect: &gamma; = 1, &epsilon; = 0,
+        penalty = 0. Changing anything here clears training, since the recorded history
+        was produced with the old values.</p>
+      </section>
+
+      <section class="card">
+        <h2>Progress</h2>
+        <dl class="stats stats-top">
+          <div><dt>Episodes</dt><dd id="statEpisodes">0</dd></div>
+          <div><dt>Total updates</dt><dd id="statUpdates">0</dd></div>
+          <div><dt>&epsilon; this episode</dt><dd id="statEpsilon">&mdash;</dd></div>
+          <div><dt>Random moves <em>this episode</em></dt><dd id="statRandom">&mdash;</dd></div>
+          <div><dt>Outcome</dt><dd id="statOutcome">&mdash;</dd></div>
+          <div><dt>Goal rate <em>last 20</em></dt><dd id="statSuccess">&mdash;</dd></div>
+          <div><dt>Traps entered</dt><dd id="statTraps">&mdash;</dd></div>
+        </dl>
+      </section>
+
+    </aside>
+
+    <!-- -------------------------------------------------------- center -->
+    <section class="col col-center">
+      <div class="card card-world">
+        <div class="world-head">
+          <div class="world-id">
+            <h2 id="worldTitle">Classic</h2>
+            <p id="layoutBlurb" class="blurb"></p>
+          </div>
+          <div class="toggles">
+            <label class="chk"><input type="checkbox" id="showBars" checked> Q-value bars</label>
+            <label class="chk"><input type="checkbox" id="showPolicy"> Greedy policy</label>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="choice" id="choice"></div>
+          <div class="world-wrap">
+            <svg id="world" role="img" aria-label="Grid world"></svg>
+          </div>
+        </div>
+
+        <ul class="legend">
+          <li><span class="sw sw-goal"></span>Goal, reward <b>+1</b></li>
+          <li><span class="sw sw-trap"></span>Trap, reward <b>&minus;1</b></li>
+          <li><span class="sw sw-empty"></span>Ordinary cell</li>
+          <li><span class="sw sw-agent"></span>Agent</li>
+          <li><span class="sw sw-pos"></span>Q &ge; 0 for that direction</li>
+          <li><span class="sw sw-neg"></span>Q &lt; 0 for that direction</li>
+        </ul>
+        <p class="legend-note">Each bar sits on the edge its action moves toward.
+        Thicker means a larger magnitude. No bar means that action has never been tried.</p>
+
+        <!-- playback: training -->
+        <div id="trainingControls" class="playback">
+          <div class="scrub">
+            <div class="scrub-label">
+              <span>Episode</span>
+              <strong id="episodeLabel">&mdash;</strong>
+            </div>
+            <button class="icon" id="epPrev" title="Previous episode">&#9664;</button>
+            <input type="range" id="episodeRange" min="0" max="0" value="0" disabled>
+            <button class="icon" id="epNext" title="Next episode">&#9654;</button>
+          </div>
+          <div class="scrub">
+            <div class="scrub-label">
+              <span>Step</span>
+              <strong id="stepLabel">&mdash;</strong>
+            </div>
+            <button class="icon" id="stepPrev" title="Previous step">&#9664;</button>
+            <input type="range" id="stepRange" min="-1" max="-1" value="-1" disabled>
+            <button class="icon" id="stepNext" title="Next step">&#9654;</button>
+          </div>
+        </div>
+
+        <!-- playback: execution -->
+        <div id="executionControls" class="playback" hidden>
+          <p class="exec-note" id="execNote"></p>
+          <div class="scrub">
+            <div class="scrub-label">
+              <span>Step</span>
+              <strong id="execStepLabel">&mdash;</strong>
+            </div>
+            <button class="icon" id="execPrev" title="Previous step">&#9664;</button>
+            <input type="range" id="execRange" min="-1" max="-1" value="-1" disabled>
+            <button class="icon" id="execNext" title="Next step">&#9654;</button>
+          </div>
+        </div>
+
+        <div class="train-bar" id="trainBar">
+          <span class="train-label">Train</span>
+          <button class="btn" data-train="1">+1 episode</button>
+          <button class="btn" data-train="10">+10</button>
+          <button class="btn" data-train="100">+100</button>
+        </div>
+
+        <section class="update-panel">
+          <div class="formula-head">
+            <h2 id="formulaTitle">Result</h2>
+            <span id="formulaTag" class="tag">nothing yet</span>
+          </div>
+          <div class="eq-grid" id="eqGrid"></div>
+          <div class="terms" id="terms"></div>
+          <p class="explain" id="explain"></p>
+        </section>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- right -->
+    <aside class="col col-right">
+      <section class="card card-qtable">
+        <h2>Q-table</h2>
+        <p class="hint">One row per cell, one column per action. The shaded cell
+        is the greedy choice for that state.</p>
+        <div class="qtable-wrap">
+          <table class="qtable">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>&uarr;</th><th>&rarr;</th><th>&darr;</th><th>&larr;</th>
+              </tr>
+            </thead>
+            <tbody id="qtableBody"></tbody>
+          </table>
+        </div>
+        <button id="resetQ" class="btn btn-reset">Reset Q-table</button>
+      </section>
+    </aside>
+  </main>
+
+
+</div>
+
+<!-- Plain scripts, loaded in dependency order, so opening this file directly
+     from disk works. ES modules would be blocked by the browser over file://. -->
+<script src="js/gridworld.js"></script>
+<script src="js/qlearning.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
