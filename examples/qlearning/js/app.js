@@ -110,7 +110,7 @@ function renderWorld() {
 
   const { q, updates } = snapshot();
   const showBars = $('showBars').checked;
-  const showPolicy = $('showPolicy').checked || mode === 'execution';
+  const showPolicy = mode === 'execution';
   const active = highlightedStep();
 
   // scale bar thickness against the largest magnitude currently in the table
@@ -177,7 +177,7 @@ function renderWorld() {
     }
   }
 
-  // --- greedy policy arrows
+  // --- greedy policy arrows (execution mode only)
   if (showPolicy) {
     for (let s = 0; s < world.numStates; s++) {
       if (world.isWall(s) || world.isTerminal(s)) continue;
@@ -792,7 +792,6 @@ function init() {
   renderParams();
 
   $('showBars').addEventListener('change', renderWorld);
-  $('showPolicy').addEventListener('change', renderWorld);
 
   $('epPrev').addEventListener('click', () => { goToEpisode(pos.ep - 1); afterScrub(); });
   $('epNext').addEventListener('click', () => { goToEpisode(pos.ep + 1); afterScrub(); });

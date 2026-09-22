@@ -124,7 +124,6 @@ and deep Q-learning.
   term has no effect (gamma = 1, epsilon = 0, penalty = 0) and the readout shows that
   neutral value, not the parked slider value. Checking one activates its slider. Changing
   anything clears training, since the recorded history was produced under the old values.
-- **Greedy policy arrows** — draws each visited cell's greedy action on the grid.
 - **Reset Q-table** — zero everything, keep the current world.
 
 ## Files
