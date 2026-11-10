@@ -450,9 +450,13 @@ function renderFormula() {
       This is how value flows one cell backwards per visit.`;
   }
 
-  $('explain').innerHTML = `${story} The new estimate moves <b>${fmt2(alpha)}</b> of the
-    way from ${fmt3(step.qOld)} toward the target ${fmt3(step.target)}, landing on
-    <b>${fmt3(step.qNew)}</b>. Hover any term above for what it means.`;
+  const move = alpha === 0
+    ? `But with <b>&alpha; = 0</b> learning is switched off: the estimate stays at
+      <b>${fmt3(step.qOld)}</b> no matter what the target ${fmt3(step.target)} says, so
+      the table never changes and the agent never improves.`
+    : `The new estimate moves <b>${fmt2(alpha)}</b> of the way from ${fmt3(step.qOld)}
+      toward the target ${fmt3(step.target)}, landing on <b>${fmt3(step.qNew)}</b>.`;
+  $('explain').innerHTML = `${story} ${move} Hover any term above for what it means.`;
 }
 
 function renderExecutionFormula() {

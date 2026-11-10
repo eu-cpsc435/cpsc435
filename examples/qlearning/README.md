@@ -61,6 +61,10 @@ TD target and TD error. The interesting moments are:
   `gamma * max Q(s',.)` — this is value flowing one cell backwards per visit;
 - a step where the TD error is 0, which is what convergence looks like.
 
+**Turning learning off.** Drag alpha all the way to 0. The TD error is still computed
+every step, but `Q <- Q + 0 * [...]` never changes the table, so the agent wanders with
+the same (all-zero) estimates forever no matter how many episodes it trains.
+
 **Switching terms on one at a time.** With everything off the rule reduces to
 `Q <- Q + alpha [ r + max Q(s',.) - Q ]`, which still solves every layout here. Turn the
 terms on to show what each one buys:
