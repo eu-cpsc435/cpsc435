@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neural Network Playground</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="bar">
+    <h1>Neural Network</h1>
+
+    <div class="controls">
+      <label class="field"><span>Task</span>
+        <select id="task"></select>
+      </label>
+      <label class="field"><span>Activation</span>
+        <select id="act">
+          <option value="sigmoid">Sigmoid</option>
+          <option value="tanh">Tanh</option>
+          <option value="relu">ReLU</option>
+        </select>
+      </label>
+      <label class="field"><span>Learning rate</span>
+        <input type="range" id="lr" min="0" max="5" step="0.1" value="1">
+        <output id="lrOut">1.0</output>
+      </label>
+      <div class="field"><span>Loss on</span>
+        <div class="seg" role="group" aria-label="Loss on">
+          <button type="button" data-mode="point" class="is-on">This point</button>
+          <button type="button" data-mode="all">All data</button>
+        </div>
+      </div>
+      <label class="field"><span>Speed</span>
+        <input type="range" id="speed" min="0" max="3" step="1" value="1" class="short">
+      </label>
+      <div class="buttons">
+        <button type="button" class="btn" id="step">Step</button>
+        <button type="button" class="btn btn-primary" id="run">Run</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <section class="card span3">
+      <div class="card-head">
+        <h2>Forward pass</h2>
+        <div class="head-right">
+          <span class="stepper">Hidden layers
+            <button type="button" id="layerMinus" aria-label="Remove hidden layer">&minus;</button>
+            <output id="layerCount">0</output>
+            <button type="button" id="layerPlus" aria-label="Add hidden layer">+</button>
+          </span>
+          <span class="legend"><i class="sw pos"></i>positive weight <i class="sw neg"></i>negative</span>
+        </div>
+      </div>
+      <svg id="fwd" class="graph" viewBox="0 0 600 292" role="img" aria-label="Network with the current data point flowing forward"></svg>
+      <div class="math" id="nodeMath"></div>
+      <div class="math" id="lossMath"></div>
+    </section>
+
+    <section class="card span3">
+      <div class="card-head">
+        <h2>Backward pass</h2>
+        <div class="head-right">
+          <span class="legend"><i class="sw pos"></i>weight will go up <i class="sw neg"></i>down</span>
+        </div>
+      </div>
+      <svg id="bwd" class="graph" viewBox="0 0 600 292" role="img" aria-label="Network with the gradient of each weight"></svg>
+      <div class="math" id="updMathA"></div>
+      <div class="math" id="updMathB"></div>
+    </section>
+
+    <section class="card span2">
+      <div class="card-head"><h2>Training data</h2></div>
+      <div class="table-wrap"><table class="data" id="data"></table></div>
+    </section>
+
+    <section class="card span2">
+      <div class="card-head">
+        <h2>Loss surface</h2>
+        <span class="muted">click an edge to pick an axis &middot; drag to rotate</span>
+      </div>
+      <canvas id="surface" aria-label="Loss as a function of the two selected weights"></canvas>
+      <div class="axis-row"><span class="tag">A</span><input type="range" id="axisA" step="0.01"><output id="axisAOut"></output></div>
+      <div class="axis-row"><span class="tag">B</span><input type="range" id="axisB" step="0.01"><output id="axisBOut"></output></div>
+    </section>
+
+    <section class="card span2">
+      <div class="card-head">
+        <h2>Loss over time</h2>
+        <span class="muted mono" id="lossNow"></span>
+      </div>
+      <div class="curve-wrap">
+        <span class="ymax mono" id="lossMax"></span>
+        <svg id="curve" viewBox="0 0 300 120" preserveAspectRatio="none" aria-label="Mean loss over all data at each step">
+          <polyline id="curveLine" fill="none"></polyline>
+          <line id="curveCursor" y1="0" y2="120" visibility="hidden"></line>
+        </svg>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/nn.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
